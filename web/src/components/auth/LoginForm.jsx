@@ -506,23 +506,23 @@ const LoginForm = () => {
         <div className='w-full max-w-md'>
           <div className='flex items-center justify-center mb-6 gap-2'>
             <img src={logo} alt='Logo' className='h-10 rounded-full' />
-            <Title heading={3} className='!text-gray-800'>
+            <Title heading={3} className='!text-gray-800 section-heading'>
               {systemName}
             </Title>
           </div>
 
-          <Card className='border-0 !rounded-2xl overflow-hidden'>
+          <Card className='border border-border-light !rounded-lg overflow-hidden shadow-elevated'>
             <div className='flex justify-center pt-6 pb-2'>
-              <Title heading={3} className='text-gray-800 dark:text-gray-200'>
+              <Title heading={3} className='text-gray-800 dark:text-gray-200 section-heading'>
                 {t('登 录')}
               </Title>
             </div>
-            <div className='px-2 py-8'>
+            <div className='px-6 py-8'>
               <div className='space-y-3'>
                 {status.wechat_login && (
                   <Button
                     theme='outline'
-                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                     type='tertiary'
                     icon={
                       <Icon svg={<WeChatIcon />} style={{ color: '#07C160' }} />
@@ -537,7 +537,7 @@ const LoginForm = () => {
                 {status.github_oauth && (
                   <Button
                     theme='outline'
-                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                     type='tertiary'
                     icon={<IconGithubLogo size='large' />}
                     onClick={handleGitHubClick}
@@ -551,7 +551,7 @@ const LoginForm = () => {
                 {status.discord_oauth && (
                   <Button
                     theme='outline'
-                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                     type='tertiary'
                     icon={
                       <SiDiscord
@@ -572,7 +572,7 @@ const LoginForm = () => {
                 {status.oidc_enabled && (
                   <Button
                     theme='outline'
-                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                     type='tertiary'
                     icon={<OIDCIcon style={{ color: '#1877F2' }} />}
                     onClick={handleOIDCClick}
@@ -585,7 +585,7 @@ const LoginForm = () => {
                 {status.linuxdo_oauth && (
                   <Button
                     theme='outline'
-                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                     type='tertiary'
                     icon={
                       <LinuxDoIcon
@@ -608,7 +608,7 @@ const LoginForm = () => {
                     <Button
                       key={provider.slug}
                       theme='outline'
-                      className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                      className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                       type='tertiary'
                       icon={getOAuthProviderIcon(provider.icon || '', 20)}
                       onClick={() => handleCustomOAuthClick(provider)}
@@ -632,7 +632,7 @@ const LoginForm = () => {
                 {status.passkey_login && passkeySupported && (
                   <Button
                     theme='outline'
-                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                     type='tertiary'
                     icon={<IconKey size='large' />}
                     onClick={handlePasskeyLogin}
@@ -649,7 +649,7 @@ const LoginForm = () => {
                 <Button
                   theme='solid'
                   type='primary'
-                  className='w-full h-12 flex items-center justify-center bg-black text-white !rounded-full hover:bg-gray-800 transition-colors'
+                  className='w-full h-12 flex items-center justify-center bg-dark-blue text-white !rounded-md hover:bg-opacity-90 transition-colors body'
                   icon={<IconMail size='large' />}
                   onClick={handleEmailLoginClick}
                   loading={emailLoginLoading}
@@ -664,7 +664,7 @@ const LoginForm = () => {
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
                   >
-                    <Text size='small' className='text-gray-600'>
+                    <Text size='small' className='text-gray-600 caption'>
                       {t('我已阅读并同意')}
                       {hasUserAgreement && (
                         <>
@@ -698,11 +698,11 @@ const LoginForm = () => {
 
               {!status.self_use_mode_enabled && (
                 <div className='mt-6 text-center text-sm'>
-                  <Text>
+                  <Text className='caption'>
                     {t('没有账户？')}{' '}
                     <Link
                       to='/register'
-                      className='text-blue-600 hover:text-blue-800 font-medium'
+                      className='text-blue-600 hover:text-blue-800 font-medium body'
                     >
                       {t('注册')}
                     </Link>
@@ -722,21 +722,21 @@ const LoginForm = () => {
         <div className='w-full max-w-md'>
           <div className='flex items-center justify-center mb-6 gap-2'>
             <img src={logo} alt='Logo' className='h-10 rounded-full' />
-            <Title heading={3}>{systemName}</Title>
+            <Title heading={3} className='section-heading'>{systemName}</Title>
           </div>
 
-          <Card className='border-0 !rounded-2xl overflow-hidden'>
+          <Card className='border border-border-light !rounded-lg overflow-hidden shadow-elevated'>
             <div className='flex justify-center pt-6 pb-2'>
-              <Title heading={3} className='text-gray-800 dark:text-gray-200'>
+              <Title heading={3} className='text-gray-800 dark:text-gray-200 section-heading'>
                 {t('登 录')}
               </Title>
             </div>
-            <div className='px-2 py-8'>
+            <div className='px-6 py-8'>
               {status.passkey_login && passkeySupported && (
                 <Button
                   theme='outline'
                   type='tertiary'
-                  className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors mb-4'
+                  className='w-full h-12 flex items-center justify-center !rounded-md border border-border-light hover:bg-glass-dark transition-colors mb-4 body'
                   icon={<IconKey size='large' />}
                   onClick={handlePasskeyLogin}
                   loading={passkeyLoading}
@@ -770,7 +770,7 @@ const LoginForm = () => {
                       checked={agreedToTerms}
                       onChange={(e) => setAgreedToTerms(e.target.checked)}
                     >
-                      <Text size='small' className='text-gray-600'>
+                      <Text size='small' className='text-gray-600 caption'>
                         {t('我已阅读并同意')}
                         {hasUserAgreement && (
                           <>
@@ -805,7 +805,7 @@ const LoginForm = () => {
                 <div className='space-y-2 pt-2'>
                   <Button
                     theme='solid'
-                    className='w-full !rounded-full'
+                    className='w-full !rounded-md bg-dark-blue text-white hover:bg-opacity-90 transition-colors body'
                     type='primary'
                     htmlType='submit'
                     onClick={handleSubmit}
@@ -820,7 +820,7 @@ const LoginForm = () => {
                   <Button
                     theme='borderless'
                     type='tertiary'
-                    className='w-full !rounded-full'
+                    className='w-full !rounded-md body'
                     onClick={handleResetPasswordClick}
                     loading={resetPasswordLoading}
                   >
@@ -839,7 +839,7 @@ const LoginForm = () => {
                     <Button
                       theme='outline'
                       type='tertiary'
-                      className='w-full !rounded-full'
+                      className='w-full !rounded-md border border-border-light hover:bg-glass-dark transition-colors body'
                       onClick={handleOtherLoginOptionsClick}
                       loading={otherLoginOptionsLoading}
                     >
@@ -851,11 +851,11 @@ const LoginForm = () => {
 
               {!status.self_use_mode_enabled && (
                 <div className='mt-6 text-center text-sm'>
-                  <Text>
+                  <Text className='caption'>
                     {t('没有账户？')}{' '}
                     <Link
                       to='/register'
-                      className='text-blue-600 hover:text-blue-800 font-medium'
+                      className='text-blue-600 hover:text-blue-800 font-medium body'
                     >
                       {t('注册')}
                     </Link>
@@ -947,16 +947,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className='relative overflow-hidden bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8'>
-      {/* 背景模糊晕染球 */}
-      <div
-        className='blur-ball blur-ball-indigo'
-        style={{ top: '-80px', right: '-80px', transform: 'none' }}
-      />
-      <div
-        className='blur-ball blur-ball-teal'
-        style={{ top: '50%', left: '-120px' }}
-      />
+    <div className='relative overflow-hidden bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen'>
       <div className='w-full max-w-sm mt-[60px]'>
         {showEmailLogin ||
         !hasOAuthLoginOptions

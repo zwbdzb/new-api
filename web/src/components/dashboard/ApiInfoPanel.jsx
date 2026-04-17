@@ -38,11 +38,11 @@ const ApiInfoPanel = ({
   return (
     <Card
       {...CARD_PROPS}
-      className='bg-gray-50 border-0 !rounded-2xl'
+      className='card-new'
       title={
         <div className={FLEX_CENTER_GAP2}>
           <Server size={16} />
-          {t('API信息')}
+          <h3 className='m-0'>{t('API信息')}</h3>
         </div>
       }
       bodyStyle={{ padding: 0 }}
@@ -59,7 +59,7 @@ const ApiInfoPanel = ({
                 </div>
                 <div className='flex-1'>
                   <div className='flex flex-wrap items-center justify-between mb-1 w-full gap-2'>
-                    <span className='text-sm font-medium text-gray-900 !font-bold break-all'>
+                    <span className='body-standard font-500 text-gray-900 break-all'>
                       {api.route}
                     </span>
                     <div className='flex items-center gap-1 mt-1 lg:mt-0'>
@@ -67,7 +67,6 @@ const ApiInfoPanel = ({
                         prefixIcon={<Gauge size={12} />}
                         size='small'
                         color='white'
-                        shape='circle'
                         onClick={() => handleSpeedTest(api.url)}
                         className='cursor-pointer hover:opacity-80 text-xs'
                       >
@@ -77,7 +76,6 @@ const ApiInfoPanel = ({
                         prefixIcon={<ExternalLink size={12} />}
                         size='small'
                         color='white'
-                        shape='circle'
                         onClick={() =>
                           window.open(api.url, '_blank', 'noopener,noreferrer')
                         }
@@ -100,7 +98,7 @@ const ApiInfoPanel = ({
                       onClick={() => handleCopyUrl(api.url)}
                     />
                   </div>
-                  <div className='text-gray-500'>{api.description}</div>
+                  <div className='caption text-gray-500'>{api.description}</div>
                 </div>
               </div>
               <Divider />

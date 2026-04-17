@@ -38,11 +38,11 @@ const FaqPanel = ({
   return (
     <Card
       {...CARD_PROPS}
-      className='shadow-sm !rounded-2xl lg:col-span-1'
+      className='card-new lg:col-span-1'
       title={
         <div className={FLEX_CENTER_GAP2}>
           <HelpCircle size={16} />
-          {t('常见问答')}
+          <h3 className='m-0'>{t('常见问答')}</h3>
         </div>
       }
       bodyStyle={{ padding: 0 }}
@@ -57,14 +57,16 @@ const FaqPanel = ({
             {faqData.map((item, index) => (
               <Collapse.Panel
                 key={index}
-                header={item.question}
+                header={<h4 className='m-0'>{item.question}</h4>}
                 itemKey={index.toString()}
               >
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: marked.parse(item.answer || ''),
-                  }}
-                />
+                <div className='body-standard'>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(item.answer || ''),
+                    }}
+                  />
+                </div>
               </Collapse.Panel>
             ))}
           </Collapse>

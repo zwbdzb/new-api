@@ -18,6 +18,18 @@
   --sidebar-width: 180px;
   --sidebar-width-collapsed: 60px;
   --sidebar-current-width: var(--sidebar-width);
+  
+  /* 新设计系统颜色变量 */
+  --color-brand-magenta: #ef2cc1;
+  --color-brand-orange: #fc4c02;
+  --color-dark-blue: #010120;
+  --color-soft-lavender: #bdbbff;
+  --color-black-40: #00000066;
+  --color-glass-light: rgba(255, 255, 255, 0.12);
+  --color-glass-dark: rgba(0, 0, 0, 0.08);
+  --color-border-light: rgba(0, 0, 0, 0.08);
+  --color-border-dark: rgba(255, 255, 255, 0.12);
+  --color-shadow: rgba(1, 1, 32, 0.1);
 }
 
 body.sidebar-collapsed {
@@ -25,10 +37,102 @@ body.sidebar-collapsed {
 }
 
 body {
-  font-family: Lato, 'Helvetica Neue', Arial, Helvetica, 'Microsoft YaHei',
+  font-family: 'The Future', Arial, 'Helvetica Neue', Helvetica, 'Microsoft YaHei',
     sans-serif;
   color: var(--semi-color-text-0);
   background-color: var(--semi-color-bg-0);
+  letter-spacing: -0.16px;
+  line-height: 1.25;
+}
+
+/* 等宽字体 */
+code, pre, .mono-text {
+  font-family: 'PP Neue Montreal Mono', Georgia, source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  letter-spacing: -0.16px;
+  line-height: 1.15;
+}
+
+/* 大标题 */
+h1 {
+  font-size: 4rem; /* 64px */
+  letter-spacing: -1.92px;
+  line-height: 1.10;
+}
+
+/* 小标题 */
+h2 {
+  font-size: 2.5rem; /* 40px */
+  letter-spacing: -0.8px;
+  line-height: 1.20;
+}
+
+/* 卡片标题 */
+h3 {
+  font-size: 1.75rem; /* 28px */
+  letter-spacing: -0.42px;
+  line-height: 1.15;
+}
+
+/* 小特征标题 */
+h4 {
+  font-size: 1.38rem; /* 22px */
+  letter-spacing: -0.22px;
+  line-height: 1.15;
+}
+
+/* 大正文 */
+.body-large {
+  font-size: 1.13rem; /* 18px */
+  letter-spacing: -0.18px;
+  line-height: 1.30;
+}
+
+/* 标准正文 */
+.body-standard {
+  font-size: 1rem; /* 16px */
+  letter-spacing: -0.16px;
+  line-height: 1.25;
+}
+
+/* 说明文字 */
+.caption {
+  font-size: 0.88rem; /* 14px */
+  line-height: 1.40;
+}
+
+/* 等宽标签 */
+.mono-label {
+  font-family: 'PP Neue Montreal Mono', Georgia, monospace;
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  line-height: 1.00;
+  letter-spacing: 0.08px;
+  text-transform: uppercase;
+}
+
+/* 小等宽标签 */
+.mono-small {
+  font-family: 'PP Neue Montreal Mono', Georgia, monospace;
+  font-size: 0.69rem; /* 11px */
+  font-weight: 500;
+  line-height: 1.00;
+  letter-spacing: 0.055px;
+  text-transform: uppercase;
+}
+
+/* 微型等宽标签 */
+.mono-micro {
+  font-family: 'PP Neue Montreal Mono', Georgia, monospace;
+  font-size: 0.63rem; /* 10px */
+  font-weight: 400;
+  line-height: 1.40;
+  letter-spacing: 0.05px;
+  text-transform: uppercase;
 }
 
 /* 桌面端禁止 body 纵向滚动 - 防止 VChart tooltip 触发页面滚动条 */
@@ -329,7 +433,137 @@ code {
   scrollbar-width: none;
 }
 
-/* ==================== 组件特定样式 ==================== */
+/* ==================== 新设计系统组件样式 ==================== */
+
+/* 按钮样式 */
+.btn-glass-dark {
+  background: var(--color-glass-light);
+  color: #ffffff;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.btn-glass-dark:hover {
+  background: rgba(255, 255, 255, 0.18);
+  opacity: 1;
+}
+
+.btn-dark-solid {
+  background: var(--color-dark-blue);
+  color: #ffffff;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-dark-solid:hover {
+  background: #000000;
+}
+
+.btn-outlined-light {
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  color: #000000;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-outlined-light:hover {
+  background: var(--color-glass-dark);
+}
+
+/* 卡片样式 */
+.card-new {
+  background: #ffffff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  box-shadow: var(--color-shadow) 0px 4px 10px;
+  padding: 24px;
+  transition: all 0.2s ease;
+}
+
+.card-new:hover {
+  box-shadow: var(--color-shadow) 0px 6px 14px;
+  transform: translateY(-2px);
+}
+
+/* 徽章样式 */
+.badge-new {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 16px;
+  font-family: 'PP Neue Montreal Mono', Georgia, monospace;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+/* 深色模式徽章 */
+html.dark .badge-new {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border-dark);
+  color: #ffffff;
+}
+
+/* 统计卡片 */
+.stats-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  box-shadow: var(--color-shadow) 0px 4px 10px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stats-card:hover {
+  box-shadow: var(--color-shadow) 0px 6px 14px;
+  transform: translateY(-2px);
+}
+
+.stats-card-value {
+  font-size: 4rem; /* 64px */
+  font-weight: 500;
+  letter-spacing: -1.92px;
+  line-height: 1.10;
+  margin-bottom: 8px;
+}
+
+.stats-card-label {
+  font-size: 0.88rem; /* 14px */
+  line-height: 1.40;
+  color: var(--semi-color-text-2);
+}
+
+/* 深色区域 */
+.dark-section {
+  background: var(--color-dark-blue);
+  color: #ffffff;
+  padding: 80px 0;
+}
+
+.dark-section .card-new {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border-dark);
+  color: #ffffff;
+}
+
+/* 渐变背景 */
+.gradient-background {
+  background: linear-gradient(135deg, #ffd1dc 0%, #e5d4ff 50%, #d1fff6 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 209, 220, 0.2) 0%, rgba(229, 212, 255, 0.2) 50%, rgba(209, 255, 246, 0.2) 100%);
+  pointer-events: none;
+}
+
 /* SelectableButtonGroup */
 .sbg-button .semi-button-content {
   min-width: 0 !important;
@@ -360,9 +594,9 @@ code {
   min-width: 18px;
   height: 18px;
   padding: 0 6px;
-  border-radius: 9px;
+  border-radius: 4px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   background-color: var(--semi-color-fill-0);
@@ -966,20 +1200,27 @@ html.dark .with-pastel-balls::before {
 }
 
 /* ==================== 自定义圆角样式 ==================== */
+/* 小元素使用4px圆角 */
 .semi-radio,
 .semi-tagInput,
 .semi-input-textarea-wrapper,
-.semi-navigation-sub-title,
 .semi-chat-inputBox-sendButton,
 .semi-page-item,
-.semi-navigation-item,
 .semi-tag-closable,
 .semi-input-wrapper,
 .semi-tabs-tab-button,
 .semi-select,
 .semi-button,
 .semi-datepicker-range-input {
-  border-radius: 10px !important;
+  border-radius: 4px !important;
+}
+
+/* 大元素使用8px圆角 */
+.semi-card,
+.semi-modal,
+.semi-sidesheet,
+.semi-drawer {
+  border-radius: 8px !important;
 }
 
 @keyframes slideInLeft {

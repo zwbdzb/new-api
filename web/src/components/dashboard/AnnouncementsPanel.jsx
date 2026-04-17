@@ -37,13 +37,13 @@ const AnnouncementsPanel = ({
   return (
     <Card
       {...CARD_PROPS}
-      className='shadow-sm !rounded-2xl lg:col-span-2'
+      className='card-new lg:col-span-2'
       title={
         <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 w-full'>
           <div className='flex items-center gap-2'>
             <Bell size={16} />
-            {t('系统公告')}
-            <Tag color='white' shape='circle'>
+            <h3 className='m-0'>{t('系统公告')}</h3>
+            <Tag color='white' className='badge-new'>
               {t('显示最新20条')}
             </Tag>
           </div>
@@ -68,7 +68,7 @@ const AnnouncementsPanel = ({
                                 : '#8b9aa7',
                   }}
                 />
-                <span className='text-gray-600'>{legend.label}</span>
+                <span className='caption text-gray-600'>{legend.label}</span>
               </div>
             ))}
           </div>
@@ -89,13 +89,13 @@ const AnnouncementsPanel = ({
                   extra={
                     item.extra ? (
                       <div
-                        className='text-xs text-gray-500'
+                        className='caption text-gray-500'
                         dangerouslySetInnerHTML={{ __html: htmlExtra }}
                       />
                     ) : null
                   }
                 >
-                  <div>
+                  <div className='body-standard'>
                     <div
                       dangerouslySetInnerHTML={{
                         __html: marked.parse(item.content || ''),

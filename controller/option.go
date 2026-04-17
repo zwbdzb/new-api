@@ -85,6 +85,15 @@ func GetOptions(c *gin.Context) {
 		}
 	}
 	common.OptionMapRWMutex.Unlock()
+	// 添加环境变量配置到返回结果（招行支付等敏感配置从 .env 加载）
+	envOptions := operation_setting.GetZSPayEnvOptions()
+	for _, eo := range envOptions {
+		options = append(options, &model.Option{
+			Key:   eo.Key,
+			Value: eo.Value,
+		})
+	}
+	
 	options = append(options, &model.Option{
 		Key:   "CompletionRatioMeta",
 		Value: buildCompletionRatioMetaValue(optionValues),

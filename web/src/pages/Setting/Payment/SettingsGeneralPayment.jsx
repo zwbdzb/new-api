@@ -46,13 +46,22 @@ export default function SettingsGeneralPayment(props) {
   }, [props.options]);
 
   const handleFormChange = (values) => {
-    setInputs(values);
+    setInputs(prev => ({ ...prev, ...values }));
   };
 
   const submitServerAddress = async () => {
     setLoading(true);
     try {
-      let ServerAddress = removeTrailingSlash(inputs.ServerAddress);
+      // 从 formApi 获取最新的表单值
+      let ServerAddress = '';
+      if (formApiRef.current) {
+        const formValues = formApiRef.current.getValues();
+        ServerAddress = formValues?.ServerAddress || inputs.ServerAddress || '';
+      } else {
+        ServerAddress = inputs.ServerAddress || '';
+      }
+      ServerAddress = removeTrailingSlash(ServerAddress);
+      
       const res = await API.put('/api/option/', {
         key: 'ServerAddress',
         value: ServerAddress,

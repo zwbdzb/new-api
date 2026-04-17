@@ -17,6 +17,16 @@ var Price = 7.3
 var MinTopUp = 1
 var USDExchangeRate = 7.3
 
+var ZSPayEnabled = false
+var ZSPayMerID = ""
+var ZSPayAppID = ""
+var ZSPayAppSecret = ""
+var ZSPayPrivateKey = ""
+var ZSPayPublicKey = ""
+var ZSPayBaseURL = ""
+var ZSPayNotifyPath = "/api/user/zs_pay/notify"
+var ZSPayPayValidTime = "5"
+
 var PayMethods = []map[string]string{
 	{
 		"name":  "支付宝",

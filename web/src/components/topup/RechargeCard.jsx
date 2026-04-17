@@ -90,6 +90,7 @@ const RechargeCard = ({
   enableWaffoTopUp,
   waffoTopUp,
   waffoPayMethods,
+  enableZsPayTopUp,
   subscriptionLoading = false,
   subscriptionPlans = [],
   billingPreference,
@@ -118,6 +119,54 @@ const RechargeCard = ({
       setActiveTab('topup');
     }
   }, [shouldShowSubscription, activeTab]);
+
+  // 判断是否只启用了招行支付（是的话隐藏充值数量输入和支付方式选择）
+  const onlyZsPayEnabled = enableZsPayTopUp && !enableOnlineTopUp && !enableStripeTopUp && !enableWaffoTopUp;
+
+  // 根据币种获取对应的充值套餐
+  const getZSPayPresetAmounts = () => {
+    const statusStr = localStorage.getItem('status');
+    let usdRate = 7;
+    try {
+      if (statusStr) {
+        const s = JSON.parse(statusStr);
+        usdRate = s?.usd_exchange_rate || 7;
+      }
+    } catch (e) {}
+
+    const { type, symbol } = getCurrencyConfig();
+    
+    // 优先使用 topupInfo 中的自定义充值数量选项和折扣配置
+    if (topupInfo && topupInfo.amount_options && topupInfo.amount_options.length > 0) {
+      // 使用自定义充值数量选项
+      return topupInfo.amount_options.map((amount) => ({
+        value: amount,
+        discount: topupInfo.discount?.[amount] || 1.0,
+      }));
+    }
+    
+    // 根据币种返回不同的套餐金额
+    if (type === 'USD') {
+      // 美元：100, 500, 1000, 5000
+      return [100, 500, 1000, 5000].map(amount => ({
+        value: amount,
+        discount: 1.0
+      }));
+    } else if (type === 'CNY') {
+      // 人民币：100, 500, 1000, 5000
+      return [100, 500, 1000, 5000].map(amount => ({
+        value: amount,
+        discount: 1.0
+      }));
+    } else {
+      // 自定义货币：使用人民币套餐并换算
+      return [100, 500, 1000, 5000].map(amount => ({
+        value: Math.round(amount * usdRate),
+        discount: 1.0
+      }));
+    }
+  };
+
   const topupContent = (
     <Space vertical style={{ width: '100%' }}>
       {/* 统计数据 */}
@@ -227,13 +276,14 @@ const RechargeCard = ({
           <div className='py-8 flex justify-center'>
             <Spin size='large' />
           </div>
-        ) : enableOnlineTopUp || enableStripeTopUp || enableCreemTopUp || enableWaffoTopUp ? (
+        ) : enableOnlineTopUp || enableStripeTopUp || enableCreemTopUp || enableWaffoTopUp || enableZsPayTopUp ? (
           <Form
             getFormApi={(api) => (onlineFormApiRef.current = api)}
             initValues={{ topUpCount: topUpCount }}
           >
             <div className='space-y-6'>
-              {(enableOnlineTopUp || enableStripeTopUp || enableWaffoTopUp) && (
+              {/* 当只启用招行支付时，隐藏充值数量输入和支付方式选择 */}
+              {!onlyZsPayEnabled && (enableOnlineTopUp || enableStripeTopUp || enableWaffoTopUp) && (
                 <Row gutter={12}>
                   <Col xs={24} sm={24} md={24} lg={10} xl={10}>
                     <Form.InputNumber
@@ -291,11 +341,12 @@ const RechargeCard = ({
                       style={{ width: '100%' }}
                     />
                   </Col>
-                  {payMethods && payMethods.filter(m => m.type !== 'waffo').length > 0 && (
+                  {/* 当只启用招行支付时，隐藏支付方式选择 */}
+                  {!onlyZsPayEnabled && payMethods && payMethods.filter(m => m.type !== 'waffo' && m.type !== 'zs_pay').length > 0 && (
                   <Col xs={24} sm={24} md={24} lg={14} xl={14}>
                     <Form.Slot label={t('选择支付方式')}>
                         <Space wrap>
-                          {payMethods.filter(m => m.type !== 'waffo').map((payMethod) => {
+                          {payMethods.filter(m => m.type !== 'waffo' && m.type !== 'zs_pay').map((payMethod) => {
                             const minTopupVal = Number(payMethod.min_topup) || 0;
                             const isStripe = payMethod.type === 'stripe';
                             const disabled =
@@ -361,7 +412,8 @@ const RechargeCard = ({
                 </Row>
               )}
 
-              {(enableOnlineTopUp || enableStripeTopUp || enableWaffoTopUp) && (
+              {/* 充值套餐区域 - 所有支付方式都显示 */}
+              {(enableOnlineTopUp || enableStripeTopUp || enableWaffoTopUp || enableZsPayTopUp) && (
                 <Form.Slot
                   label={
                     <div className='flex items-center gap-2'>
@@ -369,7 +421,6 @@ const RechargeCard = ({
                       {(() => {
                         const { symbol, rate, type } = getCurrencyConfig();
                         if (type === 'USD') return null;
-
                         return (
                           <span
                             style={{
@@ -386,7 +437,8 @@ const RechargeCard = ({
                   }
                 >
                   <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2'>
-                    {presetAmounts.map((preset, index) => {
+                    {/* 当只启用招行支付时，使用根据币种计算的套餐 */}
+                    {(onlyZsPayEnabled ? getZSPayPresetAmounts() : presetAmounts).map((preset, index) => {
                       const discount =
                         preset.discount || topupInfo?.discount?.[preset.value] || 1.0;
                       const originalPrice = preset.value * priceRatio;
@@ -411,14 +463,11 @@ const RechargeCard = ({
                       let displaySave = save;
 
                       if (type === 'USD') {
-                        // 数量保持USD，价格从CNY转USD
                         displayActualPay = actualPay / usdRate;
                         displaySave = save / usdRate;
                       } else if (type === 'CNY') {
-                        // 数量转CNY，价格已是CNY
                         displayValue = preset.value * usdRate;
                       } else if (type === 'CUSTOM') {
-                        // 数量和价格都转自定义货币
                         displayValue = preset.value * rate;
                         displayActualPay = (actualPay / usdRate) * rate;
                         displaySave = (save / usdRate) * rate;
@@ -545,6 +594,27 @@ const RechargeCard = ({
                         </div>
                       </Card>
                     ))}
+                  </div>
+                </Form.Slot>
+              )}
+
+              {/* 招商银行聚合支付区域 */}
+              {enableZsPayTopUp && (
+                <Form.Slot label={t('招商银行聚合支付')}>
+                  <div className='flex items-center gap-3'>
+                    <Button
+                      theme='solid'
+                      type='danger'
+                      onClick={() => preTopUp('zs_pay')}
+                      loading={paymentLoading && payWay === 'zs_pay'}
+                      icon={<CreditCard size={18} color='white' />}
+                      className='!rounded-lg !px-6 !py-2'
+                    >
+                      {t('立即支付')}
+                    </Button>
+                    <Text type='tertiary' style={{ fontSize: '12px' }}>
+                      {t('支持支付宝、微信扫码支付')}
+                    </Text>
                   </div>
                 </Form.Slot>
               )}

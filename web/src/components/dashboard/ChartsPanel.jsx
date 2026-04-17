@@ -41,12 +41,12 @@ const ChartsPanel = ({
   return (
     <Card
       {...CARD_PROPS}
-      className={`!rounded-2xl ${hasApiInfoPanel ? 'lg:col-span-3' : ''}`}
+      className={`card-new ${hasApiInfoPanel ? 'lg:col-span-3' : ''}`}
       title={
         <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between w-full gap-3'>
           <div className={FLEX_CENTER_GAP2}>
             <PieChart size={16} />
-            {t('模型数据分析')}
+            <h3 className='m-0'>{t('模型数据分析')}</h3>
           </div>
           <Tabs
             type='slash'

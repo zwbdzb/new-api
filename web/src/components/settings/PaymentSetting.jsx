@@ -18,14 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useState } from 'react';
-import { Card, Spin } from '@douyinfe/semi-ui';
+import { Card, Spin, Collapse } from '@douyinfe/semi-ui';
 import SettingsGeneralPayment from '../../pages/Setting/Payment/SettingsGeneralPayment';
 import SettingsPaymentGateway from '../../pages/Setting/Payment/SettingsPaymentGateway';
 import SettingsPaymentGatewayStripe from '../../pages/Setting/Payment/SettingsPaymentGatewayStripe';
 import SettingsPaymentGatewayCreem from '../../pages/Setting/Payment/SettingsPaymentGatewayCreem';
 import SettingsPaymentGatewayWaffo from '../../pages/Setting/Payment/SettingsPaymentGatewayWaffo';
+import SettingsPaymentGatewayZS from '../../pages/Setting/Payment/SettingsPaymentGatewayZS';
 import { API, showError, toBoolean } from '../../helpers';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const PaymentSetting = () => {
   const { t } = useTranslation();
@@ -48,9 +50,42 @@ const PaymentSetting = () => {
     StripeUnitPrice: 8.0,
     StripeMinTopUp: 1,
     StripePromotionCodesEnabled: false,
+
+    CreemApiKey: '',
+    CreemWebhookSecret: '',
+    CreemProducts: '[]',
+    CreemTestMode: false,
+
+    WaffoEnabled: false,
+    WaffoApiKey: '',
+    WaffoPrivateKey: '',
+    WaffoPublicCert: '',
+    WaffoSandboxPublicCert: '',
+    WaffoSandboxApiKey: '',
+    WaffoSandboxPrivateKey: '',
+    WaffoSandbox: false,
+    WaffoMerchantId: '',
+    WaffoCurrency: 'USD',
+    WaffoUnitPrice: 1.0,
+    WaffoMinTopUp: 1,
+    WaffoNotifyUrl: '',
+    WaffoReturnUrl: '',
+    WaffoPayMethods: '',
+
+    ZSPayEnabled: false,
+    ZSPayNotifyPath: '/api/user/zs_pay/notify',
+    ZSPayPayValidTime: '1800',
   });
 
   let [loading, setLoading] = useState(false);
+  // 控制各个支付方式的折叠状态（默认全部折叠）
+  const [collapsedSections, setCollapsedSections] = useState({
+    epay: true,
+    stripe: true,
+    creem: true,
+    waffo: true,
+    zs: true,
+  });
 
   const getOptions = async () => {
     const res = await API.get('/api/option/');
@@ -96,7 +131,14 @@ const PaymentSetting = () => {
           case 'MinTopUp':
           case 'StripeUnitPrice':
           case 'StripeMinTopUp':
+          case 'WaffoUnitPrice':
+          case 'WaffoMinTopUp':
             newInputs[item.key] = parseFloat(item.value);
+            break;
+          case 'CreemTestMode':
+          case 'WaffoEnabled':
+          case 'WaffoSandbox':
+            newInputs[item.key] = toBoolean(item.value);
             break;
           default:
             if (item.key.endsWith('Enabled')) {
@@ -125,27 +167,142 @@ const PaymentSetting = () => {
     }
   }
 
+  // 组件挂载时加载配置
   useEffect(() => {
     onRefresh();
   }, []);
 
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const getSectionIcon = (section) => {
+    return collapsedSections[section] ? (
+      <ChevronDown size={16} />
+    ) : (
+      <ChevronUp size={16} />
+    );
+  };
+
   return (
     <>
       <Spin spinning={loading} size='large'>
+        {/* 通用设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsGeneralPayment options={inputs} refresh={onRefresh} />
         </Card>
+
+        {/* 易支付配置 */}
         <Card style={{ marginTop: '10px' }}>
-          <SettingsPaymentGateway options={inputs} refresh={onRefresh} />
+          <div 
+            onClick={() => toggleSection('epay')}
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: collapsedSections.epay ? 0 : 16
+            }}
+          >
+            <h3 style={{ margin: 0 }}>
+              {t('易支付配置')}
+            </h3>
+            {getSectionIcon('epay')}
+          </div>
+          {!collapsedSections.epay && (
+            <SettingsPaymentGateway options={inputs} refresh={onRefresh} />
+          )}
         </Card>
+
+        {/* Stripe 配置 */}
         <Card style={{ marginTop: '10px' }}>
-          <SettingsPaymentGatewayStripe options={inputs} refresh={onRefresh} />
+          <div 
+            onClick={() => toggleSection('stripe')}
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: collapsedSections.stripe ? 0 : 16
+            }}
+          >
+            <h3 style={{ margin: 0 }}>
+              {t('Stripe 配置')}
+            </h3>
+            {getSectionIcon('stripe')}
+          </div>
+          {!collapsedSections.stripe && (
+            <SettingsPaymentGatewayStripe options={inputs} refresh={onRefresh} />
+          )}
         </Card>
+
+        {/* Creem 配置 */}
         <Card style={{ marginTop: '10px' }}>
-          <SettingsPaymentGatewayCreem options={inputs} refresh={onRefresh} />
+          <div 
+            onClick={() => toggleSection('creem')}
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: collapsedSections.creem ? 0 : 16
+            }}
+          >
+            <h3 style={{ margin: 0 }}>
+              {t('Creem 配置')}
+            </h3>
+            {getSectionIcon('creem')}
+          </div>
+          {!collapsedSections.creem && (
+            <SettingsPaymentGatewayCreem options={inputs} refresh={onRefresh} />
+          )}
         </Card>
+
+        {/* Waffo 配置 */}
         <Card style={{ marginTop: '10px' }}>
-          <SettingsPaymentGatewayWaffo options={inputs} refresh={onRefresh} />
+          <div 
+            onClick={() => toggleSection('waffo')}
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: collapsedSections.waffo ? 0 : 16
+            }}
+          >
+            <h3 style={{ margin: 0 }}>
+              {t('Waffo 配置')}
+            </h3>
+            {getSectionIcon('waffo')}
+          </div>
+          {!collapsedSections.waffo && (
+            <SettingsPaymentGatewayWaffo options={inputs} refresh={onRefresh} />
+          )}
+        </Card>
+
+        {/* 招商银行聚合支付配置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <div 
+            onClick={() => toggleSection('zs')}
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: collapsedSections.zs ? 0 : 16
+            }}
+          >
+            <h3 style={{ margin: 0 }}>
+              {t('招商银行聚合支付配置')}
+            </h3>
+            {getSectionIcon('zs')}
+          </div>
+          {!collapsedSections.zs && (
+            <SettingsPaymentGatewayZS options={inputs} refresh={onRefresh} />
+          )}
         </Card>
       </Spin>
     </>

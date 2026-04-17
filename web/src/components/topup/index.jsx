@@ -76,6 +76,9 @@ const TopUp = () => {
   const [waffoPayMethods, setWaffoPayMethods] = useState([]);
   const [waffoMinTopUp, setWaffoMinTopUp] = useState(1);
 
+  // 招商银行聚合支付相关状态
+  const [enableZsPayTopUp, setEnableZsPayTopUp] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [payWay, setPayWay] = useState('');
@@ -162,6 +165,11 @@ const TopUp = () => {
         showError(t('管理员未开启Stripe充值！'));
         return;
       }
+    } else if (payment === 'zs_pay') {
+      if (!enableZsPayTopUp) {
+        showError(t('管理员未开启招商银行聚合支付！'));
+        return;
+      }
     } else {
       if (!enableOnlineTopUp) {
         showError(t('管理员未开启在线充值！'));
@@ -196,6 +204,11 @@ const TopUp = () => {
       if (amount === 0) {
         await getStripeAmount();
       }
+    } else if (payWay === 'zs_pay') {
+      // 招商银行聚合支付处理
+      if (amount === 0) {
+        await getAmount();
+      }
     } else {
       // 普通支付处理
       if (amount === 0) {
@@ -216,6 +229,12 @@ const TopUp = () => {
           amount: parseInt(topUpCount),
           payment_method: 'stripe',
         });
+      } else if (payWay === 'zs_pay') {
+        // 招商银行聚合支付请求
+        res = await API.post('/api/user/zs_pay/pay', {
+          amount: parseInt(topUpCount),
+          payment_method: 'zs_pay',
+        });
       } else {
         // 普通支付请求
         res = await API.post('/api/user/pay', {
@@ -230,6 +249,13 @@ const TopUp = () => {
           if (payWay === 'stripe') {
             // Stripe 支付回调处理
             window.open(data.pay_link, '_blank');
+          } else if (payWay === 'zs_pay') {
+            // 招商银行聚合支付 - 显示二维码
+            if (data.qr_code_url) {
+              showQRCodeDialog(data.qr_code_url, data.trade_no);
+            } else {
+              showError(t('获取支付二维码失败'));
+            }
           } else {
             // 普通支付表单提交
             let params = data;
@@ -349,6 +375,50 @@ const TopUp = () => {
   const processCreemCallback = (data) => {
     // 与 Stripe 保持一致的实现方式
     window.open(data.checkout_url, '_blank');
+  };
+
+  // 显示招商银行聚合支付二维码
+  const showQRCodeDialog = (qrCodeUrl, tradeNo) => {
+    Modal.info({
+      title: t('招商银行聚合支付'),
+      content: (
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <img
+              src={qrCodeUrl}
+              alt={t('支付二维码')}
+              style={{ width: '200px', height: '200px' }}
+            />
+          </div>
+          <p style={{ marginBottom: '10px' }}>{t('请使用微信/支付宝/银联扫码支付')}</p>
+          <p style={{ marginBottom: '20px' }}>{t('订单号')}{tradeNo}</p>
+          <p style={{ fontSize: '12px', color: '#666' }}>{t('支付完成后，系统会自动处理您的充值')}</p>
+        </div>
+      ),
+      centered: true,
+      okText: t('我已支付'),
+      cancelText: t('取消支付'),
+      onOk: async () => {
+        // 查询支付状态
+        try {
+          const res = await API.get(`/api/user/zs_pay/status?trade_no=${tradeNo}`);
+          if (res.data?.message === 'success') {
+            const status = res.data?.data?.status;
+            if (status === 'PAID') {
+              showSuccess(t('支付成功！'));
+              // 刷新用户数据
+              getUserQuota();
+            } else {
+              showInfo(t('支付状态') + '：' + status);
+            }
+          } else {
+            showError(t('查询支付状态失败'));
+          }
+        } catch (error) {
+          showError(t('查询支付状态失败'));
+        }
+      }
+    });
   };
 
   const getUserQuota = async () => {
@@ -481,16 +551,20 @@ const TopUp = () => {
           const enableStripeTopUp = data.enable_stripe_topup || false;
           const enableOnlineTopUp = data.enable_online_topup || false;
           const enableCreemTopUp = data.enable_creem_topup || false;
+          const enableZsPayTopUp = data.enable_zs_pay_topup || false;
           const minTopUpValue = enableOnlineTopUp
             ? data.min_topup
             : enableStripeTopUp
               ? data.stripe_min_topup
-              : data.enable_waffo_topup
-                ? data.waffo_min_topup
-                : 1;
+              : enableZsPayTopUp
+                ? data.min_topup
+                : data.enable_waffo_topup
+                  ? data.waffo_min_topup
+                  : 1;
           setEnableOnlineTopUp(enableOnlineTopUp);
           setEnableStripeTopUp(enableStripeTopUp);
           setEnableCreemTopUp(enableCreemTopUp);
+          setEnableZsPayTopUp(enableZsPayTopUp);
           const enableWaffoTopUp = data.enable_waffo_topup || false;
           setEnableWaffoTopUp(enableWaffoTopUp);
           setWaffoPayMethods(data.waffo_pay_methods || []);
@@ -791,6 +865,7 @@ const TopUp = () => {
           enableWaffoTopUp={enableWaffoTopUp}
           waffoTopUp={waffoTopUp}
           waffoPayMethods={waffoPayMethods}
+          enableZsPayTopUp={enableZsPayTopUp}
           presetAmounts={presetAmounts}
           selectedPreset={selectedPreset}
           selectPresetAmount={selectPresetAmount}

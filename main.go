@@ -22,6 +22,7 @@ import (
 	"github.com/QuantumNous/new-api/relay"
 	"github.com/QuantumNous/new-api/router"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	_ "github.com/QuantumNous/new-api/setting/performance_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
@@ -248,6 +249,9 @@ func InitResources() error {
 			common.SysLog("No .env file found, using default environment variables. If needed, please create a .env file and set the relevant variables.")
 		}
 	}
+
+	// 重新加载招行支付配置（init() 函数执行时 .env 还未加载，现在重新读取）
+	operation_setting.ReloadZSPayFromEnv()
 
 	// 加载环境变量
 	common.InitEnv()

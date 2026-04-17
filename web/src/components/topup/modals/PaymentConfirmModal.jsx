@@ -182,6 +182,19 @@ const PaymentConfirmModal = ({
                           </Text>
                         </>
                       );
+                    } else if (payWay === 'zs_pay') {
+                      return (
+                        <>
+                          <CreditCard
+                            className='mr-2'
+                            size={16}
+                            color='#FF4500'
+                          />
+                          <Text className='text-slate-900 dark:text-slate-100'>
+                            {t('招商银行聚合支付')}
+                          </Text>
+                        </>
+                      );
                     } else {
                       return (
                         <>
