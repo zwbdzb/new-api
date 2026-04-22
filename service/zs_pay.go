@@ -2,12 +2,12 @@ package service
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math/big"
 	"net/http"
 	"regexp"
@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/tjfoc/gmsm/sm2"
 	"github.com/tjfoc/gmsm/x509"
@@ -46,18 +47,20 @@ func NewZSPayService() *ZSPayService {
 	if s.PrivateKeyPEM != "" {
 		privateKey, err := s.parseSM2PrivateKey(s.PrivateKeyPEM)
 		if err != nil {
-			log.Printf("解析SM2私钥失败: %v", err)
+			common.SysLog(fmt.Sprintf("[ZS Pay] 解析SM2私钥失败: %v", err))
 		} else {
 			s.privateKey = privateKey
+			common.SysLog("[ZS Pay] SM2私钥解析成功")
 		}
 	}
 
 	if s.PublicKeyPEM != "" {
 		publicKey, err := s.parseSM2PublicKey(s.PublicKeyPEM)
 		if err != nil {
-			log.Printf("解析SM2公钥失败: %v", err)
+			common.SysLog(fmt.Sprintf("[ZS Pay] 解析SM2公钥失败: %v", err))
 		} else {
 			s.publicKey = publicKey
+			common.SysLog("[ZS Pay] SM2公钥解析成功")
 		}
 	}
 
@@ -262,6 +265,8 @@ type ZSQRCodeResult struct {
 func (s *ZSPayService) QRCodeApply(orderNo string, amount float64, notifyURL string) (*ZSQRCodeResult, error) {
 	url := s.BaseURL + "/polypay/v1.0/mchorders/qrcodeapply"
 
+	common.SysLog(fmt.Sprintf("[ZS Pay] 申请二维码: orderNo=%s, amount=%.2f, notifyURL=%s, baseURL=%s", orderNo, amount, notifyURL, s.BaseURL))
+
 	req := &ZSQRCodeApplyReq{
 		MerID:        s.MerID,
 		OrderID:      orderNo,
@@ -271,11 +276,16 @@ func (s *ZSPayService) QRCodeApply(orderNo string, amount float64, notifyURL str
 		PayValidTime: operation_setting.GetZSPayPayValidTime(),
 	}
 
+	common.SysLog(fmt.Sprintf("[ZS Pay] 请求参数: %+v", req))
+
 	resp := &ZSQRCodeApplyResp{}
 	err := s.doRequest(url, req, resp)
 	if err != nil {
+		common.SysLog(fmt.Sprintf("[ZS Pay] 申请二维码失败: %v", err))
 		return nil, fmt.Errorf("申请收款二维码失败: %w", err)
 	}
+
+	common.SysLog(fmt.Sprintf("[ZS Pay] 招行返回: cmbOrderId=%s, qrCodeURL=%s", resp.CmbOrderID, resp.QRCodeURL))
 
 	qrCodeURL := s.processQRCodeData(resp.QRCodeURL)
 
@@ -350,8 +360,11 @@ func (s *ZSPayService) doRequest(reqURL string, reqData interface{}, respData in
 		return fmt.Errorf("序列化请求数据失败: %w", err)
 	}
 
+	common.SysLog(fmt.Sprintf("[ZS Pay] 业务请求数据: %s", string(bizContent)))
+
 	sign, err := s.sign(string(bizContent))
 	if err != nil {
+		common.SysLog(fmt.Sprintf("[ZS Pay] 签名生成失败: %v", err))
 		return fmt.Errorf("生成签名失败: %w", err)
 	}
 
@@ -368,27 +381,41 @@ func (s *ZSPayService) doRequest(reqURL string, reqData interface{}, respData in
 		return fmt.Errorf("序列化基础请求失败: %w", err)
 	}
 
+	common.SysLog(fmt.Sprintf("[ZS Pay] 完整请求体: %s", string(reqBody)))
+	common.SysLog(fmt.Sprintf("[ZS Pay] 请求URL: %s", reqURL))
+
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
 
 	body, err := s.client.Post(reqURL, reqBody, headers)
 	if err != nil {
+		common.SysLog(fmt.Sprintf("[ZS Pay] HTTP请求失败: %v", err))
 		return fmt.Errorf("发送请求失败: %w", err)
 	}
+
+	common.SysLog(fmt.Sprintf("[ZS Pay] 原始响应: %s", string(body)))
 
 	var baseResp ZSBaseResponse
 	if err := json.Unmarshal(body, &baseResp); err != nil {
 		return fmt.Errorf("解析响应失败: %w", err)
 	}
 
+	common.SysLog(fmt.Sprintf("[ZS Pay] 基础响应: returnCode=%s, respCode=%s, errCode=%s, respMsg=%s", baseResp.ReturnCode, baseResp.RespCode, baseResp.ErrCode, baseResp.RespMsg))
+
 	if baseResp.ReturnCode != "SUCCESS" || baseResp.RespCode != "SUCCESS" {
-		return fmt.Errorf("招行返回错误: %s - %s", baseResp.ErrCode, baseResp.RespMsg)
+		err := fmt.Errorf("招行返回错误: %s - %s", baseResp.ErrCode, baseResp.RespMsg)
+		common.SysLog(fmt.Sprintf("[ZS Pay] %v", err))
+		return err
 	}
 
 	if baseResp.BizContent == "" {
-		return fmt.Errorf("招行返回业务数据为空")
+		err := fmt.Errorf("招行返回业务数据为空")
+		common.SysLog(fmt.Sprintf("[ZS Pay] %v", err))
+		return err
 	}
+
+	common.SysLog(fmt.Sprintf("[ZS Pay] 业务响应数据: %s", baseResp.BizContent))
 
 	if err := json.Unmarshal([]byte(baseResp.BizContent), respData); err != nil {
 		return fmt.Errorf("解析业务响应失败: %w", err)
@@ -437,7 +464,7 @@ func (s *ZSPayService) processQRCodeData(qrCode string) string {
 		return qrCode
 	}
 
-	baseURL := operation_setting.ZSPayBaseURL
+	baseURL := operation_setting.GetZSPayBaseURL()
 	if baseURL == "" || !regexp.MustCompile(`api\.cmburl\.cn:8065`).MatchString(baseURL) {
 		return qrCode
 	}
@@ -484,7 +511,14 @@ func NewZSHttpClient(timeout time.Duration) *ZSHttpClient {
 }
 
 func (c *ZSHttpClient) Post(reqURL string, reqBody []byte, headers map[string]string) ([]byte, error) {
-	client := &http.Client{Timeout: c.timeout}
+	// 创建 HTTP 客户端，跳过 TLS 验证（因为招行测试环境使用自签名证书）
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Timeout:   c.timeout,
+		Transport: transport,
+	}
 
 	req, err := http.NewRequest("POST", reqURL, strings.NewReader(string(reqBody)))
 	if err != nil {
@@ -496,11 +530,17 @@ func (c *ZSHttpClient) Post(reqURL string, reqBody []byte, headers map[string]st
 		req.Header.Set(k, v)
 	}
 
+	common.SysLog(fmt.Sprintf("[ZS Pay] 发送请求到: %s", reqURL))
+	common.SysLog(fmt.Sprintf("[ZS Pay] 请求头: %+v", req.Header))
+
 	resp, err := client.Do(req)
 	if err != nil {
+		common.SysLog(fmt.Sprintf("[ZS Pay] HTTP 请求失败: %v", err))
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	common.SysLog(fmt.Sprintf("[ZS Pay] HTTP 状态码: %d", resp.StatusCode))
 
 	buf := new(strings.Builder)
 	_, err = io.Copy(buf, resp.Body)
@@ -508,7 +548,15 @@ func (c *ZSHttpClient) Post(reqURL string, reqBody []byte, headers map[string]st
 		return nil, err
 	}
 
-	return []byte(buf.String()), nil
+	respBody := buf.String()
+	common.SysLog(fmt.Sprintf("[ZS Pay] 响应长度: %d 字节", len(respBody)))
+	common.SysLog(fmt.Sprintf("[ZS Pay] 响应内容: %s", respBody))
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("HTTP 状态码异常: %d, 响应: %s", resp.StatusCode, respBody)
+	}
+
+	return []byte(respBody), nil
 }
 
 func GenerateRandomString(length int) string {

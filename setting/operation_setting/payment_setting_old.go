@@ -44,6 +44,11 @@ var PayMethods = []map[string]string{
 		"type":      "custom1",
 		"min_topup": "50",
 	},
+	{
+		"name":  "招商银行聚合支付",
+		"color": "#FF4500",
+		"type":  "zs_pay",
+	},
 }
 
 func UpdatePayMethodsByJsonString(jsonString string) error {

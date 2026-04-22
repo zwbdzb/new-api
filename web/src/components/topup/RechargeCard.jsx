@@ -137,11 +137,13 @@ const RechargeCard = ({
     const { type, symbol } = getCurrencyConfig();
     
     // 优先使用 topupInfo 中的自定义充值数量选项和折扣配置
+    // 注意：自定义充值数量选项的值直接作为当前币元的金额，不需要汇率换算
     if (topupInfo && topupInfo.amount_options && topupInfo.amount_options.length > 0) {
-      // 使用自定义充值数量选项
+      // 使用自定义充值数量选项，添加标记表示这些金额已是当前币元
       return topupInfo.amount_options.map((amount) => ({
         value: amount,
         discount: topupInfo.discount?.[amount] || 1.0,
+        isCustomCurrencyAmount: true,
       }));
     }
     
@@ -441,7 +443,12 @@ const RechargeCard = ({
                     {(onlyZsPayEnabled ? getZSPayPresetAmounts() : presetAmounts).map((preset, index) => {
                       const discount =
                         preset.discount || topupInfo?.discount?.[preset.value] || 1.0;
-                      const originalPrice = preset.value * priceRatio;
+
+                      // 如果标记为自定义币元金额（管理员直接设置的当前币元充值选项），则不进行汇率换算
+                      const isCustomCurrencyAmount = preset.isCustomCurrencyAmount === true;
+
+                      // 计算原价和折后价：自定义币元金额直接使用 preset.value，默认选项需要乘以 priceRatio
+                      const originalPrice = isCustomCurrencyAmount ? preset.value : preset.value * priceRatio;
                       const discountedPrice = originalPrice * discount;
                       const hasDiscount = discount < 1.0;
                       const actualPay = discountedPrice;
@@ -462,16 +469,20 @@ const RechargeCard = ({
                       let displayActualPay = actualPay;
                       let displaySave = save;
 
-                      if (type === 'USD') {
-                        displayActualPay = actualPay / usdRate;
-                        displaySave = save / usdRate;
-                      } else if (type === 'CNY') {
-                        displayValue = preset.value * usdRate;
-                      } else if (type === 'CUSTOM') {
-                        displayValue = preset.value * rate;
-                        displayActualPay = (actualPay / usdRate) * rate;
-                        displaySave = (save / usdRate) * rate;
+                      if (!isCustomCurrencyAmount) {
+                        // 默认预设选项：需要进行汇率换算（原逻辑）
+                        if (type === 'USD') {
+                          displayActualPay = actualPay / usdRate;
+                          displaySave = save / usdRate;
+                        } else if (type === 'CNY') {
+                          displayValue = preset.value * usdRate;
+                        } else if (type === 'CUSTOM') {
+                          displayValue = preset.value * rate;
+                          displayActualPay = (actualPay / usdRate) * rate;
+                          displaySave = (save / usdRate) * rate;
+                        }
                       }
+                      // isCustomCurrencyAmount 为 true 时，displayValue/displayActualPay/displaySave 保持原值不变
 
                       return (
                         <Card
@@ -487,11 +498,17 @@ const RechargeCard = ({
                           }}
                           bodyStyle={{ padding: '12px' }}
                           onClick={() => {
-                            selectPresetAmount(preset);
-                            onlineFormApiRef.current?.setValue(
-                              'topUpCount',
-                              preset.value,
-                            );
+                            // 如果点击已选中的套餐，则取消选择
+                            if (selectedPreset === preset.value) {
+                              setSelectedPreset(null);
+                              onlineFormApiRef.current?.setValue('topUpCount', '');
+                            } else {
+                              selectPresetAmount(preset);
+                              onlineFormApiRef.current?.setValue(
+                                'topUpCount',
+                                preset.value,
+                              );
+                            }
                           }}
                         >
                           <div style={{ textAlign: 'center' }}>
@@ -598,8 +615,8 @@ const RechargeCard = ({
                 </Form.Slot>
               )}
 
-              {/* 招商银行聚合支付区域 */}
-              {enableZsPayTopUp && (
+              {/* 招商银行聚合支付区域 - 当只启用招行支付且未选择套餐时隐藏 */}
+              {enableZsPayTopUp && !(onlyZsPayEnabled && !selectedPreset) && (
                 <Form.Slot label={t('招商银行聚合支付')}>
                   <div className='flex items-center gap-3'>
                     <Button

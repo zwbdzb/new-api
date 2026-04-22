@@ -79,6 +79,9 @@ const TopUp = () => {
   // 招商银行聚合支付相关状态
   const [enableZsPayTopUp, setEnableZsPayTopUp] = useState(false);
 
+  // 判断是否只启用了招行支付（是的话隐藏充值数量输入和支付方式选择）
+  const onlyZsPayEnabled = enableZsPayTopUp && !enableOnlineTopUp && !enableStripeTopUp && !enableWaffoTopUp;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [payWay, setPayWay] = useState('');
@@ -180,7 +183,22 @@ const TopUp = () => {
     setPayWay(payment);
     setPaymentLoading(true);
     try {
-      if (payment === 'stripe') {
+      // 当只启用招行支付时，使用选中的充值套餐金额
+      // 因为自定义充值数量选项的值已经是当前币元，不需要后端计算
+      if (payment === 'zs_pay' && onlyZsPayEnabled && selectedPreset) {
+        // 使用选中的充值套餐金额，直接设置 topUpCount
+        setTopUpCount(selectedPreset);
+        // 从 presetAmounts 中获取对应的预设选项，计算折扣后的金额
+        const preset = presetAmounts.find(p => p.value === selectedPreset);
+        if (preset) {
+          const discount = preset.discount || topupInfo.discount[selectedPreset] || 1.0;
+          // 自定义充值数量选项的值已经是当前币元，直接乘以折扣
+          const discountedAmount = selectedPreset * discount;
+          setAmount(discountedAmount);
+        } else {
+          setAmount(selectedPreset);
+        }
+      } else if (payment === 'stripe') {
         await getStripeAmount();
       } else {
         await getAmount();
@@ -592,10 +610,12 @@ const TopUp = () => {
         }
 
         // 如果有自定义充值数量选项，使用它们替换默认的预设选项
+        // 注意：自定义充值数量选项的值直接作为当前币元的金额，不需要汇率换算
         if (data.amount_options && data.amount_options.length > 0) {
           const customPresets = data.amount_options.map((amount) => ({
             value: amount,
             discount: data.discount[amount] || 1.0,
+            isCustomCurrencyAmount: true, // 标记：此金额已是当前币元，无需汇率换算
           }));
           setPresetAmounts(customPresets);
         }
