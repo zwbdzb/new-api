@@ -50,6 +50,15 @@ func main() {
 		return
 	}
 
+	// Wait for database migration to complete before starting HTTP server
+	migrationTimeout := getMigrationTimeout()
+	select {
+	case <-model.GetMigrationDone():
+		common.SysLog("database migration completed")
+	case <-time.After(migrationTimeout):
+		common.SysLog("warning: database migration timeout (" + migrationTimeout.String() + "), server will start but may wait for migration to complete")
+	}
+
 	common.SysLog("New API " + common.Version + " started")
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
@@ -317,4 +326,15 @@ func InitResources() error {
 	}
 
 	return nil
+}
+
+// getMigrationTimeout returns the migration timeout duration.
+// It can be configured via MIGRATION_TIMEOUT_SECONDS environment variable (default: 60 seconds).
+func getMigrationTimeout() time.Duration {
+	if envTimeout := os.Getenv("MIGRATION_TIMEOUT_SECONDS"); envTimeout != "" {
+		if timeout, err := strconv.Atoi(envTimeout); err == nil && timeout > 0 {
+			return time.Duration(timeout) * time.Second
+		}
+	}
+	return 60 * time.Second
 }

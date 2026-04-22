@@ -65,6 +65,114 @@ var DB *gorm.DB
 
 var LOG_DB *gorm.DB
 
+// migrationOnce ensures main database migration runs only once
+var migrationOnce sync.Once
+
+// migrationErr stores the error from main database migration
+var migrationErr error
+
+// migrationDone channel is closed when main database migration completes
+var migrationDone = make(chan struct{})
+
+// logMigrationOnce ensures log database migration runs only once
+var logMigrationOnce sync.Once
+
+// logMigrationErr stores the error from log database migration
+var logMigrationErr error
+
+// logMigrationDone channel is closed when log database migration completes
+var logMigrationDone = make(chan struct{})
+
+// StartAsyncMigration starts the database migration in the background.
+// It uses sync.Once to ensure migration runs only once.
+// Call WaitMigration() to wait for migration to complete before using the database.
+func StartAsyncMigration() {
+	migrationOnce.Do(func() {
+		common.SysLog("database migration started in background")
+		if common.IsMasterNode {
+			migrationErr = migrateDB()
+			if migrationErr != nil {
+				common.SysError("database migration failed: " + migrationErr.Error())
+			} else {
+				common.SysLog("database migration completed")
+			}
+		} else {
+			common.SysLog("skipping database migration on non-master node")
+			migrationErr = nil
+		}
+		close(migrationDone)
+	})
+}
+
+// StartAsyncLogDBMigration starts the log database migration in the background.
+func StartAsyncLogDBMigration() {
+	logMigrationOnce.Do(func() {
+		if os.Getenv("LOG_SQL_DSN") == "" {
+			LOG_DB = DB
+			common.SysLog("log database migration skipped (using main database)")
+			close(logMigrationDone)
+			return
+		}
+		common.SysLog("log database migration started in background")
+		if common.IsMasterNode {
+			logMigrationErr = migrateLOGDB()
+			if logMigrationErr != nil {
+				common.SysError("log database migration failed: " + logMigrationErr.Error())
+			} else {
+				common.SysLog("log database migration completed")
+			}
+		} else {
+			common.SysLog("skipping log database migration on non-master node")
+			logMigrationErr = nil
+		}
+		close(logMigrationDone)
+	})
+}
+
+// WaitMigration waits for the main database migration to complete.
+// It blocks until migration finishes or returns immediately if already done.
+func WaitMigration() error {
+	<-migrationDone
+	return migrationErr
+}
+
+// WaitLogMigration waits for the log database migration to complete.
+func WaitLogMigration() error {
+	<-logMigrationDone
+	return logMigrationErr
+}
+
+// IsMigrationDone checks if main database migration has completed.
+func IsMigrationDone() bool {
+	select {
+	case <-migrationDone:
+		return true
+	default:
+		return false
+	}
+}
+
+// GetMigrationDone returns the channel that is closed when migration completes.
+// This allows callers to wait for migration with custom timeout logic.
+func GetMigrationDone() <-chan struct{} {
+	return migrationDone
+}
+
+// GetLogMigrationDone returns the channel that is closed when log migration completes.
+func GetLogMigrationDone() <-chan struct{} {
+	return logMigrationDone
+}
+
+// IsLogMigrationDone checks if log database migration has completed.
+func IsLogMigrationDone() bool {
+	select {
+	case <-logMigrationDone:
+		return true
+	default:
+		return false
+	}
+}
+
 func createRootAccountIfNeed() error {
 	var user User
 	//if user.Status != common.UserStatusEnabled {
@@ -201,9 +309,9 @@ func InitDB() (err error) {
 		if common.UsingMySQL {
 			//_, _ = sqlDB.Exec("ALTER TABLE channels MODIFY model_mapping TEXT;") // TODO: delete this line when most users have upgraded
 		}
-		common.SysLog("database migration started")
-		err = migrateDB()
-		return err
+		// Start database migration asynchronously in background
+		go StartAsyncMigration()
+		return nil
 	} else {
 		common.FatalLog(err)
 	}
@@ -238,9 +346,9 @@ func InitLogDB() (err error) {
 		if !common.IsMasterNode {
 			return nil
 		}
-		common.SysLog("database migration started")
-		err = migrateLOGDB()
-		return err
+		// Start log database migration asynchronously in background
+		go StartAsyncLogDBMigration()
+		return nil
 	} else {
 		common.FatalLog(err)
 	}
