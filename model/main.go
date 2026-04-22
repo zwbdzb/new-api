@@ -90,11 +90,16 @@ func StartAsyncMigration() {
 	migrationOnce.Do(func() {
 		common.SysLog("database migration started in background")
 		if common.IsMasterNode {
-			migrationErr = migrateDB()
-			if migrationErr != nil {
-				common.SysError("database migration failed: " + migrationErr.Error())
+			if common.SkipAutoMigrate {
+				common.SysLog("skipping database migration (SKIP_AUTO_MIGRATE=true)")
+				migrationErr = nil
 			} else {
-				common.SysLog("database migration completed")
+				migrationErr = migrateDB()
+				if migrationErr != nil {
+					common.SysError("database migration failed: " + migrationErr.Error())
+				} else {
+					common.SysLog("database migration completed")
+				}
 			}
 		} else {
 			common.SysLog("skipping database migration on non-master node")
@@ -309,8 +314,15 @@ func InitDB() (err error) {
 		if common.UsingMySQL {
 			//_, _ = sqlDB.Exec("ALTER TABLE channels MODIFY model_mapping TEXT;") // TODO: delete this line when most users have upgraded
 		}
-		// Start database migration asynchronously in background
-		go StartAsyncMigration()
+		// Check if database migration should be skipped
+		if !common.GetEnvOrDefaultBool("SKIP_DB_MIGRATION", false) {
+			// Start database migration asynchronously in background
+			go StartAsyncMigration()
+		} else {
+			common.SysLog("database migration skipped due to SKIP_DB_MIGRATION environment variable")
+			// Close migrationDone channel to avoid blocking
+			close(migrationDone)
+		}
 		return nil
 	} else {
 		common.FatalLog(err)

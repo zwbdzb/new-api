@@ -166,12 +166,6 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
-        text: t('模型部署'),
-        itemKey: 'deployment',
-        to: '/deployment',
-        className: isAdmin() ? '' : 'tableHiddle',
-      },
-      {
         text: t('兑换码管理'),
         itemKey: 'redemption',
         to: '/redemption',
@@ -305,6 +299,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
 
   // 选中高亮颜色（统一）
   const SELECTED_COLOR = 'var(--semi-color-primary)';
+  const DEFAULT_COLOR = 'var(--semi-color-text-0)';
 
   // 渲染自定义菜单项
   const renderNavItem = (item) => {
@@ -312,7 +307,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     if (item.className === 'tableHiddle') return null;
 
     const isSelected = selectedKeys.includes(item.itemKey);
-    const textColor = isSelected ? SELECTED_COLOR : 'inherit';
+    const textColor = isSelected ? SELECTED_COLOR : DEFAULT_COLOR;
 
     return (
       <Nav.Item
@@ -340,7 +335,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
   const renderSubItem = (item) => {
     if (item.items && item.items.length > 0) {
       const isSelected = selectedKeys.includes(item.itemKey);
-      const textColor = isSelected ? SELECTED_COLOR : 'inherit';
+      const textColor = isSelected ? SELECTED_COLOR : DEFAULT_COLOR;
 
       return (
         <Nav.Sub
@@ -362,7 +357,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         >
           {item.items.map((subItem) => {
             const isSubSelected = selectedKeys.includes(subItem.itemKey);
-            const subTextColor = isSubSelected ? SELECTED_COLOR : 'inherit';
+            const subTextColor = isSubSelected ? SELECTED_COLOR : DEFAULT_COLOR;
 
             return (
               <Nav.Item

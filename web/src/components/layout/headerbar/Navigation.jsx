@@ -70,7 +70,7 @@ const Navigation = ({
   };
 
   return (
-    <nav className='flex flex-1 items-center gap-4 mx-4 overflow-x-auto whitespace-nowrap scrollbar-hide'>
+    <nav className='flex items-center gap-4 mx-4 overflow-x-auto whitespace-nowrap scrollbar-hide justify-center'>
       <SkeletonWrapper
         loading={isLoading}
         type='navigation'

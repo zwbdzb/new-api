@@ -116,6 +116,11 @@ var RetryTimes = 0
 
 var IsMasterNode bool
 
+// SkipAutoMigrate skips database migration on startup when set to true.
+// Useful for production environments where the database is already up-to-date
+// and migration takes too long due to PostgreSQL metadata queries.
+var SkipAutoMigrate bool
+
 var requestInterval int
 var RequestInterval time.Duration
 

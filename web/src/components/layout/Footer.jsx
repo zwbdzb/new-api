@@ -192,19 +192,6 @@ const FooterBar = () => {
             </Typography.Text>
           </div>
 
-          <div className='text-sm'>
-            <span className='text-white/80 caption'>
-              {t('设计与开发由')}{' '}
-            </span>
-            <a
-              href='https://github.com/QuantumNous/new-api'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-soft-lavender body font-500'
-            >
-              New API
-            </a>
-          </div>
         </div>
       </footer>
     ),
@@ -224,19 +211,6 @@ const FooterBar = () => {
               className='custom-footer na-cb6feafeb3990c78 text-sm text-white/80 caption'
               dangerouslySetInnerHTML={{ __html: footer }}
             ></div>
-            <div className='text-sm flex-shrink-0'>
-              <span className='text-white/80 caption'>
-                {t('设计与开发由')}{' '}
-              </span>
-              <a
-                href='https://github.com/QuantumNous/new-api'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-soft-lavender body font-500'
-              >
-                New API
-              </a>
-            </div>
           </div>
         </footer>
       ) : (

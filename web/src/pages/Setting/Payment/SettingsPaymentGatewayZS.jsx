@@ -234,12 +234,6 @@ export default function SettingsPaymentGatewayZS(props) {
             <br />
           </Text>
           <Banner
-            type='info'
-            description={t(
-              '敏感配置信息（商户号、AppID、密钥等）已在 .env 文件中通过 ZS_PAYMENT_* 环境变量配置，无需在界面填写。修改后请重启服务。',
-            )}
-          />
-          <Banner
             type='warning'
             description={t(
               '回调地址格式：服务器地址 + 回调路径，例如：https://your-domain.com/api/user/zs_pay/notify',
