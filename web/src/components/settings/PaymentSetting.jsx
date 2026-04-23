@@ -207,9 +207,9 @@ const PaymentSetting = () => {
               marginBottom: collapsedSections.epay ? 0 : 16
             }}
           >
-            <h3 style={{ margin: 0 }}>
+            <h4 style={{ margin: 0 }}>
               {t('易支付配置')}
-            </h3>
+            </h4>
             {getSectionIcon('epay')}
           </div>
           {!collapsedSections.epay && (
@@ -229,9 +229,9 @@ const PaymentSetting = () => {
               marginBottom: collapsedSections.stripe ? 0 : 16
             }}
           >
-            <h3 style={{ margin: 0 }}>
+            <h4 style={{ margin: 0 }}>
               {t('Stripe 配置')}
-            </h3>
+            </h4>
             {getSectionIcon('stripe')}
           </div>
           {!collapsedSections.stripe && (
@@ -251,9 +251,9 @@ const PaymentSetting = () => {
               marginBottom: collapsedSections.creem ? 0 : 16
             }}
           >
-            <h3 style={{ margin: 0 }}>
+            <h4 style={{ margin: 0 }}>
               {t('Creem 配置')}
-            </h3>
+            </h4>
             {getSectionIcon('creem')}
           </div>
           {!collapsedSections.creem && (
@@ -273,9 +273,9 @@ const PaymentSetting = () => {
               marginBottom: collapsedSections.waffo ? 0 : 16
             }}
           >
-            <h3 style={{ margin: 0 }}>
+            <h4 style={{ margin: 0 }}>
               {t('Waffo 配置')}
-            </h3>
+            </h4>
             {getSectionIcon('waffo')}
           </div>
           {!collapsedSections.waffo && (
@@ -295,9 +295,9 @@ const PaymentSetting = () => {
               marginBottom: collapsedSections.zs ? 0 : 16
             }}
           >
-            <h3 style={{ margin: 0 }}>
+            <h4 style={{ margin: 0 }}>
               {t('招商银行聚合支付配置')}
-            </h3>
+            </h4>
             {getSectionIcon('zs')}
           </div>
           {!collapsedSections.zs && (

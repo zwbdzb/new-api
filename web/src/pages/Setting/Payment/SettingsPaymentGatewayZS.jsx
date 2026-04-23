@@ -228,7 +228,7 @@ export default function SettingsPaymentGatewayZS(props) {
         onValueChange={handleFormChange}
         getFormApi={(api) => (formApiRef.current = api)}
       >
-        <Form.Section text={t('招商银行聚合支付设置')}>
+        <Form.Section>
           <Text>
             {t('招商银行聚合支付支持微信、支付宝、银联等支付方式。')}
             <br />
